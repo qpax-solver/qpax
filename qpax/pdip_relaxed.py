@@ -67,13 +67,13 @@ def pdip_newton_step(inputs):
 # 12 pdip_iter
 
 
-def relax_qp(Q, q, A, b, G, h, x, s, z, y, solver_tol=1e-5, target_kappa=1e-5):
+def relax_qp(Q, q, A, b, G, h, x, s, z, y, solver_tol=1e-5, target_kappa=1e-5, max_iter=30):
     # continuation criteria for normal predictor-corrector
     def relaxed_continuation_criteria(inputs):
         converged = inputs[11]
         pdip_iter = inputs[12]
 
-        return jnp.logical_and(pdip_iter < 30, converged == 0)
+        return jnp.logical_and(pdip_iter < max_iter, converged == 0)
 
     converged = 0
     pdip_iter = 0

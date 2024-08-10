@@ -47,9 +47,9 @@ def diff_qp(Q, q, A, b, G, h, z, s, lam, nu, dl_dz):
 
 
 @jax.custom_vjp
-def solve_qp_primal(Q, q, A, b, G, h, solver_tol=1e-5, target_kappa=1e-3):
+def solve_qp_primal(Q, q, A, b, G, h, solver_tol=1e-5, target_kappa=1e-3, max_iter=30):
     # solve qp as normal and return primal solution (use any solver)
-    x, s, z, y, converged, iters1 = solve_qp(Q, q, A, b, G, h, solver_tol=solver_tol)
+    x, s, z, y, converged, iters1 = solve_qp(Q, q, A, b, G, h, solver_tol=solver_tol, max_iter=max_iter)
     return x
 
 
@@ -58,13 +58,13 @@ these two functions are only called when we diff solve_qp_x
 """
 
 
-def solve_qp_primal_forward(Q, q, A, b, G, h, solver_tol=1e-5, target_kappa=1e-3):
+def solve_qp_primal_forward(Q, q, A, b, G, h, solver_tol=1e-5, target_kappa=1e-3, max_iter=30):
     # solve qp as normal and return primal solution (use any solver)
-    x, s, z, y, converged1, iters1 = solve_qp(Q, q, A, b, G, h, solver_tol=solver_tol)
+    x, s, z, y, converged1, iters1 = solve_qp(Q, q, A, b, G, h, solver_tol=solver_tol, max_iter=max_iter)
 
     # relax this solution by taking vanilla Newton steps on relaxed KKT
     xr, sr, zr, yr, converged2, iters2 = relax_qp(
-        Q, q, A, b, G, h, x, s, z, y, solver_tol=solver_tol, target_kappa=target_kappa
+        Q, q, A, b, G, h, x, s, z, y, solver_tol=solver_tol, target_kappa=target_kappa, max_iter=max_iter
     )
 
     # return real solution x, and save the relaxed variables for backward
