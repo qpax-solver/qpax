@@ -6,22 +6,39 @@ import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 
+# FACTORIZATION = "qr"
+FACTORIZATION = "cholesky"
 
-def qr_solve(qr, rhs):
-    """Solve a linear system using the QR decomposition."""
-    return jsp.linalg.solve_triangular(qr[1], qr[0].T @ rhs)
+def factorized_solve(factorization, rhs):
+    """Solve a linear system using QR or Cholesky decomposition."""
+    if FACTORIZATION == "cholesky":
+        y = jsp.linalg.solve_triangular(factorization, rhs, lower=True)
+        x = jsp.linalg.solve_triangular(factorization.T, y, lower=False)
+        return x
+    elif FACTORIZATION == "qr":
+        return jsp.linalg.solve_triangular(factorization[1], factorization[0].T @ rhs)
+    else:
+        raise ValueError(f"Unknown factorization: {FACTORIZATION}. Must be 'qr' or 'cholesky'")
+
+def factorize(mat):
+    if FACTORIZATION == "cholesky":
+        return jnp.linalg.cholesky(mat)
+    elif FACTORIZATION == "qr":
+        return jnp.linalg.qr(mat)
+    else:
+        raise ValueError(f"Unknown factorization: {FACTORIZATION}. Must be 'qr' or 'cholesky'")
 
 
 def initialize(Q, q, A, b, G, h):
     """Initialize primal and dual variables from CVXGEN/CVXOPT."""
     H = Q + G.T @ G
-    L_H = jnp.linalg.qr(H)
-    F = A @ qr_solve(L_H, A.T)
-    L_F = jnp.linalg.qr(F)
+    L_H = factorize(H)
+    F = A @ factorized_solve(L_H, A.T)
+    L_F = factorize(F)
 
     r1 = -q + G.T @ h
-    y = qr_solve(L_F, A @ qr_solve(L_H, r1) - b)
-    x = qr_solve(L_H, r1 - A.T @ y)
+    y = factorized_solve(L_F, A @ factorized_solve(L_H, r1) - b)
+    x = factorized_solve(L_H, r1 - A.T @ y)
     z = G @ x - h
 
     alpha_p = -jnp.min(-z)
@@ -39,9 +56,9 @@ def factorize_kkt(Q, G, A, s, z):
     """Factorize the KKT system."""
     P_inv_vec = z / s
     H = Q + G.T @ (G.T * P_inv_vec).T
-    L_H = jnp.linalg.qr(H)
-    F = A @ qr_solve(L_H, A.T)
-    L_F = jnp.linalg.qr(F)
+    L_H = factorize(H)
+    F = A @ factorized_solve(L_H, A.T)
+    L_F = factorize(F)
 
     return P_inv_vec, L_H, L_F
 
@@ -55,8 +72,8 @@ def solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, v1, v2, v3, v4):
     r2 = v3 - v2 / z
     p1 = v1 + G.T @ (P_inv_vec * r2)
 
-    dy = qr_solve(L_F, A @ qr_solve(L_H, p1) - v4)
-    dx = qr_solve(L_H, p1 - A.T @ dy)
+    dy = factorized_solve(L_F, A @ factorized_solve(L_H, p1) - v4)
+    dx = factorized_solve(L_H, p1 - A.T @ dy)
     ds = v3 - G @ dx
     dz = (v2 - z * ds) / s
 
@@ -136,16 +153,16 @@ def pdip_pc_step(inputs):
 
 def solve_eq_only(Q, q, A, b):
     """Solve equality constrained QP (Boyd, Convex, pg 559)."""
-    Q_f = jnp.linalg.qr(Q)
+    Q_f = factorize(Q)
 
-    Qinv_At = qr_solve(Q_f, A.T)
-    Qinv_g = qr_solve(Q_f, q)
+    Qinv_At = factorized_solve(Q_f, A.T)
+    Qinv_g = factorized_solve(Q_f, q)
 
     S = -A @ Qinv_At
-    S_f = jnp.linalg.qr(S)
-    y = qr_solve(S_f, A @ Qinv_g + b)
+    S_f = factorize(S)
+    y = factorized_solve(S_f, A @ Qinv_g + b)
 
-    x = qr_solve(Q_f, -A.T @ y - q)
+    x = factorized_solve(Q_f, -A.T @ y - q)
 
     return x, y
 
