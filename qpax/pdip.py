@@ -6,8 +6,7 @@ import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
 
-# FACTORIZATION = "qr"
-FACTORIZATION = "cholesky"
+FACTORIZATION = "qr" # Or "cholesky"
 
 def factorized_solve(factorization, rhs):
     """Solve a linear system using QR or Cholesky decomposition."""
