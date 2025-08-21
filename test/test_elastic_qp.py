@@ -56,6 +56,8 @@ def create_elastic_problem(Q, q, G, h, penalty):
 
 
 def test_with_qpax():
+    np.random.seed(0)
+
     Q, q, G, h, penalty, x_sol, t_sol, s1_sol, s2_sol, z1_sol, z2_sol = load_problem_data()
 
     x_i, t_i, s1_i, s2_i, z1_i, z2_i = load_initial_values()
@@ -144,4 +146,5 @@ def test_with_qpax():
     assert jnp.linalg.norm(grads1[3] - grads2[3]) < 1e-3
 
 
-test_with_qpax()
+if __name__ == "__main__":
+    test_with_qpax()
