@@ -27,7 +27,7 @@ def test_solver(
 
     # Determine solve times from jitted solver
     times = []
-    for _ in range(1000):
+    for _ in range(n_test):
         Q, q, A, b, G, h, x_true, s_true, z_true, y_true = generate_random_qp(
             nx, ns, ny
         )
