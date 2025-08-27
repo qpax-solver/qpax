@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 
-from qpax.pdip import centering_params, ort_linesearch, qr_solve
+from qpax.pdip import centering_params, ort_linesearch, factorized_solve, factorize
 
 DEBUG_FLAG = False
 
@@ -12,8 +12,8 @@ def solve_init_elastic_ls(Q, q, G, h, penalty):
     r2 = penalty * jnp.ones(ns)
     r4 = h
 
-    L_H = jnp.linalg.qr(Q + 0.5 * G.T @ G)
-    x = qr_solve(L_H, r1 - 0.5 * G.T @ (r2 - r4))
+    L_H = factorize(Q + 0.5 * G.T @ G)
+    x = factorized_solve(L_H, r1 - 0.5 * G.T @ (r2 - r4))
     z2 = 0.5 * (G @ x + r2 - r4)
     z1 = r2 - z2
     t = -z1
@@ -59,8 +59,8 @@ def solve_elastic_kkt_affine(s1, z1, s2, z2, Q, G, r1, r2, r3, r4, r5, r6):
 
     # one linear system solve
     H = Q + G.T @ (G.T * (1 / a3)).T
-    L_H = jnp.linalg.qr(H)
-    dx = qr_solve(L_H, r1 - G.T @ (p1 / a3))
+    L_H = factorize(H)
+    dx = factorized_solve(L_H, r1 - G.T @ (p1 / a3))
 
     # rest is easy
     dz2 = (p1 + G @ dx) / a3
@@ -84,7 +84,7 @@ def solve_elastic_kkt_cc(L_H, s1, z1, s2, z2, Q, G, r1, r2, r3, r4, r5, r6):
 
     # one linear system solve
     # dx = jnp.linalg.solve(Q + G.T @ (G.T * (1 / a3)).T, r1 - G.T @ (p1 / a3))
-    dx = qr_solve(L_H, r1 - G.T @ (p1 / a3))
+    dx = factorized_solve(L_H, r1 - G.T @ (p1 / a3))
 
     # rest is easy
     dz2 = (p1 + G @ dx) / a3

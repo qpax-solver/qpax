@@ -56,3 +56,6 @@ def test_qp_solver():
         assert iters <= 10  # this is much stricter than the continuation criteria
 
         check_kkt_conditions(Q, q, A, b, G, h, x, s, z, y, solver_tol=solver_tol)
+
+if __name__ == "__main__":
+    test_qp_solver()
