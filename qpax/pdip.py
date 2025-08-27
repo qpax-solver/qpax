@@ -11,9 +11,7 @@ FACTORIZATION = "qr" # Or "cholesky"
 def factorized_solve(factorization, rhs):
     """Solve a linear system using QR or Cholesky decomposition."""
     if FACTORIZATION == "cholesky":
-        y = jsp.linalg.solve_triangular(factorization, rhs, lower=True)
-        x = jsp.linalg.solve_triangular(factorization.T, y, lower=False)
-        return x
+        return jsp.linalg.cho_solve(factorization, rhs)
     elif FACTORIZATION == "qr":
         return jsp.linalg.solve_triangular(factorization[1], factorization[0].T @ rhs)
     else:
@@ -21,7 +19,7 @@ def factorized_solve(factorization, rhs):
 
 def factorize(mat):
     if FACTORIZATION == "cholesky":
-        return jnp.linalg.cholesky(mat)
+        return jsp.linalg.cho_factor(mat)
     elif FACTORIZATION == "qr":
         return jnp.linalg.qr(mat)
     else:
