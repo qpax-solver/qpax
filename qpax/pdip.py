@@ -179,7 +179,8 @@ def remove_inf_constraints(G, h):
 
 
 def solve_qp(
-    Q: jax.Array, q: jax.Array, A: jax.Array, b: jax.Array, G: jax.Array, h: jax.Array, solver_tol: float = 1e-3
+    Q: jax.Array, q: jax.Array, A: jax.Array, b: jax.Array, G: jax.Array, h: jax.Array, 
+    solver_tol: float = 1e-3, max_iters: int = 30
 ) -> Tuple[jax.Array, jax.Array, jax.Array, jax.Array, int, int]:
     """Solve a QP using a primal-dual interior point method.
 
@@ -190,6 +191,8 @@ def solve_qp(
         b: (m,) equality constraint vector
         G: (p, n) inequality constraint matrix
         h: (p,) inequality constraint vector
+        solver_tol: convergence tolerance
+        max_iters: maximum number of iterations
 
     Returns:
         x: (n,) optimal solution
@@ -229,7 +232,7 @@ def solve_qp(
         converged = inputs[11]
         pdip_iter = inputs[12]
 
-        return jnp.logical_and(pdip_iter < 30, converged == 0)
+        return jnp.logical_and(pdip_iter < max_iters, converged == 0)
 
     converged = 0
     pdip_iter = 0
@@ -306,7 +309,7 @@ def while_loop_debug(cond_fun, body_fun, init_val):
     return val
 
 
-def solve_qp_debug(Q, q, A, b, G, h, solver_tol=1e-3):
+def solve_qp_debug(Q, q, A, b, G, h, solver_tol=1e-3, max_iters=30):
     """Debug solving with verbose printing."""
     # make sure each matrix is 2D
     Q = jnp.atleast_2d(Q)
@@ -337,7 +340,7 @@ def solve_qp_debug(Q, q, A, b, G, h, solver_tol=1e-3):
         converged = inputs[11]
         pdip_iter = inputs[12]
 
-        return jnp.logical_and(pdip_iter < 30, converged == 0)
+        return jnp.logical_and(pdip_iter < max_iters, converged == 0)
 
     converged = 0
     pdip_iter = 0
