@@ -15,13 +15,13 @@ def qr_solve(qr, rhs):
 def initialize(Q, q, A, b, G, h):
     """Initialize primal and dual variables from CVXGEN/CVXOPT."""
     H = Q + G.T @ G
-    L_H = jnp.linalg.qr(H)
-    F = A @ qr_solve(L_H, A.T)
-    L_F = jnp.linalg.qr(F)
+    L_H = jsp.linalg.cho_factor(H)
+    F = A @ jsp.linalg.cho_solve(L_H, A.T)
+    L_F = jsp.linalg.cho_factor(F)
 
     r1 = -q + G.T @ h
-    y = qr_solve(L_F, A @ qr_solve(L_H, r1) - b)
-    x = qr_solve(L_H, r1 - A.T @ y)
+    y = jsp.linalg.cho_solve(L_F, A @ jsp.linalg.cho_solve(L_H, r1) - b)
+    x = jsp.linalg.cho_solve(L_H, r1 - A.T @ y)
     z = G @ x - h
 
     alpha_p = -jnp.min(-z)
@@ -39,9 +39,9 @@ def factorize_kkt(Q, G, A, s, z):
     """Factorize the KKT system."""
     P_inv_vec = z / s
     H = Q + G.T @ (G.T * P_inv_vec).T
-    L_H = jnp.linalg.qr(H)
-    F = A @ qr_solve(L_H, A.T)
-    L_F = jnp.linalg.qr(F)
+    L_H = jsp.linalg.cho_factor(H)
+    F = A @ jsp.linalg.cho_solve(L_H, A.T)
+    L_F = jsp.linalg.cho_factor(F)
 
     return P_inv_vec, L_H, L_F
 
@@ -55,8 +55,8 @@ def solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, v1, v2, v3, v4):
     r2 = v3 - v2 / z
     p1 = v1 + G.T @ (P_inv_vec * r2)
 
-    dy = qr_solve(L_F, A @ qr_solve(L_H, p1) - v4)
-    dx = qr_solve(L_H, p1 - A.T @ dy)
+    dy = jsp.linalg.cho_solve(L_F, A @ jsp.linalg.cho_solve(L_H, p1) - v4)
+    dx = jsp.linalg.cho_solve(L_H, p1 - A.T @ dy)
     ds = v3 - G @ dx
     dz = (v2 - z * ds) / s
 
@@ -136,16 +136,17 @@ def pdip_pc_step(inputs):
 
 def solve_eq_only(Q, q, A, b):
     """Solve equality constrained QP (Boyd, Convex, pg 559)."""
-    Q_f = jnp.linalg.qr(Q)
+    Q_f = jsp.linalg.cho_factor(Q)
 
-    Qinv_At = qr_solve(Q_f, A.T)
-    Qinv_g = qr_solve(Q_f, q)
+    Qinv_At = jsp.linalg.cho_solve(Q_f, A.T)
+    Qinv_g = jsp.linalg.cho_solve(Q_f, q)
 
-    S = -A @ Qinv_At
-    S_f = jnp.linalg.qr(S)
-    y = qr_solve(S_f, A @ Qinv_g + b)
+    # S = A Q⁻¹ Aᵀ is PD (positive definite); original code used -S, so negate RHS
+    S = A @ Qinv_At
+    S_f = jsp.linalg.cho_factor(S)
+    y = jsp.linalg.cho_solve(S_f, -(A @ Qinv_g + b))
 
-    x = qr_solve(Q_f, -A.T @ y - q)
+    x = jsp.linalg.cho_solve(Q_f, -A.T @ y - q)
 
     return x, y
 
