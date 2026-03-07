@@ -64,13 +64,9 @@ def solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, v1, v2, v3, v4):
 
 
 def ort_linesearch(x, dx):
-    """maximum alpha <= 1 st x + alpha * dx >= 0"""
-
-    def body(_x, _dx):
-        return jnp.where(_dx < 0, -_x / _dx, jnp.inf)
-
-    batch = jax.vmap(body, in_axes=(0, 0))
-    return jnp.min(jnp.array([1.0, jnp.min(batch(x, dx))]))
+    """max alpha <= 1 such that x + dx >= 0"""
+    alphas = jnp.where(dx < 0, -x / dx, 1.0)
+    return jnp.minimum(1.0, jnp.min(alphas))  # type: ignore
 
 
 def centering_params(s, z, ds_a, dz_a):
@@ -101,12 +97,16 @@ def pdip_pc_step(inputs):
 
     # affine step
     P_inv_vec, L_H, L_F = factorize_kkt(Q, G, A, s, z)
-    _, ds_a, dz_a, _ = solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4)
+    _, ds_a, dz_a, _ = solve_kkt_rhs(
+        Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4
+    )
 
     # change centering + correcting params
     sigma, mu = centering_params(s, z, ds_a, dz_a)
     r2 = r2 - (sigma * mu - (ds_a * dz_a))
-    dx, ds, dz, dy = solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4)
+    dx, ds, dz, dy = solve_kkt_rhs(
+        Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4
+    )
 
     # linesearch and update primal & dual vars (equation 11)
     alpha = 0.99 * jnp.min(jnp.array([ort_linesearch(s, ds), ort_linesearch(z, dz)]))
@@ -180,8 +180,14 @@ def remove_inf_constraints(G, h):
 
 
 def solve_qp(
-    Q: jax.Array, q: jax.Array, A: jax.Array, b: jax.Array, G: jax.Array, h: jax.Array,
-    solver_tol: float = 1e-3, max_iter: int = 30,
+    Q: jax.Array,
+    q: jax.Array,
+    A: jax.Array,
+    b: jax.Array,
+    G: jax.Array,
+    h: jax.Array,
+    solver_tol: float = 1e-3,
+    max_iter: int = 30,
 ) -> Tuple[jax.Array, jax.Array, jax.Array, jax.Array, int, int]:
     """Solve a QP using a primal-dual interior point method.
 
@@ -219,7 +225,7 @@ def solve_qp(
         return x, jnp.zeros(0), jnp.zeros(0), y, 1, 0
 
     # any inf's in constraints bound and we remove the constraint
-    G, h, h_mask_is_inf = remove_inf_constraints(G, h)
+    G, h, h_mask_is_inf = remove_inf_constraints(G, h)  # type: ignore
 
     # symmetrize Q
     Q = 0.5 * (Q + Q.T)
@@ -250,7 +256,7 @@ def solve_qp(
     converged = outputs[11]
     pdip_iter = outputs[12]
 
-    return x, s, z, y, converged, pdip_iter
+    return x, s, z, y, converged, pdip_iter  # type: ignore
 
 
 def pdip_pc_step_debug(inputs):
@@ -269,15 +275,21 @@ def pdip_pc_step_debug(inputs):
 
     # affine step
     P_inv_vec, L_H, L_F = factorize_kkt(Q, G, A, s, z)
-    _, ds_a, dz_a, _ = solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4)
+    _, ds_a, dz_a, _ = solve_kkt_rhs(
+        Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4
+    )
 
     # change centering + correcting params
     sigma, mu = centering_params(s, z, ds_a, dz_a)
     r2 = r2 - (sigma * mu - (ds_a * dz_a))
-    dx, ds, dz, dy = solve_kkt_rhs(Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4)
+    dx, ds, dz, dy = solve_kkt_rhs(
+        Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4
+    )
 
     # linesearch and update primal & dual vars
-    alpha = 0.99 * jnp.min(jnp.array([1.0, 0.99 * ort_linesearch(s, ds), 0.99 * ort_linesearch(z, dz)]))
+    alpha = 0.99 * jnp.min(
+        jnp.array([1.0, 0.99 * ort_linesearch(s, ds), 0.99 * ort_linesearch(z, dz)])
+    )
 
     x = x + alpha * dx
     s = s + alpha * ds
@@ -286,16 +298,13 @@ def pdip_pc_step_debug(inputs):
 
     if len(r4) == 0:
         r4 = jnp.zeros(1)
+    nr1 = jnp.linalg.norm(r1, ord=jnp.inf)
+    nr2 = jnp.linalg.norm(r2, ord=jnp.inf)
+    nr3 = jnp.linalg.norm(r3, ord=jnp.inf)
+    nr4 = jnp.linalg.norm(r4, ord=jnp.inf)
     print(
-        "%3d   %9.2e   %9.2e  %9.2e  %9.2e   % 6.4f"
-        % (
-            pdip_iter,
-            jnp.linalg.norm(r1, ord=jnp.inf),
-            jnp.linalg.norm(r2, ord=jnp.inf),
-            jnp.linalg.norm(r3, ord=jnp.inf),
-            jnp.linalg.norm(r4, ord=jnp.inf),
-            alpha,
-        )
+        f"{pdip_iter:3d}   {nr1:9.2e}   {nr2:9.2e}"
+        f"  {nr3:9.2e}  {nr4:9.2e}   {alpha:6.4f}"
     )
 
     return (Q, q, A, b, G, h, x, s, z, y, solver_tol, converged, pdip_iter + 1)
@@ -348,14 +357,16 @@ def solve_qp_debug(Q, q, A, b, G, h, solver_tol=1e-3, max_iter=30):
     print("iter      r1          r2         r3         r4        alpha")
     print("------------------------------------------------------")
 
-    outputs = while_loop_debug(pc_continuation_criteria, pdip_pc_step_debug, init_inputs)
+    outputs = while_loop_debug(
+        pc_continuation_criteria, pdip_pc_step_debug, init_inputs
+    )
 
     x, s, z, y = outputs[6:10]
     # set z to 0 where h was inf
-    z = jnp.where(h_mask_is_inf, 0, z)
+    z = jnp.where(h_mask_is_inf, 0, z)  # type: ignore
 
     # set s to inf where h was inf (this is not necessary)
-    s = jnp.where(h_mask_is_inf, jnp.inf, s)
+    s = jnp.where(h_mask_is_inf, jnp.inf, s)  # type: ignore
     converged = outputs[11]
     pdip_iter = outputs[12]
 
