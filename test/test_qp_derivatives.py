@@ -36,8 +36,8 @@ def test_derivs():
     for i in range(6):
         print("-------------input: ", input_names[i], "----------------")
 
-        def lambda_f(_X):
-            return my_f_select(inputs, _X, i)
+        def lambda_f(_X, _i=i):
+            return my_f_select(inputs, _X, _i)
 
         # lambda_f = lambda _X: my_f_select(inputs, _X, i)
 

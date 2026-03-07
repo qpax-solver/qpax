@@ -1,7 +1,5 @@
 """PDIP functions for solving QP problems."""
 
-from typing import Tuple
-
 import jax
 import jax.numpy as jnp
 import jax.scipy as jsp
@@ -188,7 +186,7 @@ def solve_qp(
     h: jax.Array,
     solver_tol: float = 1e-3,
     max_iter: int = 30,
-) -> Tuple[jax.Array, jax.Array, jax.Array, jax.Array, int, int]:
+) -> tuple[jax.Array, jax.Array, jax.Array, jax.Array, int, int]:
     """Solve a QP using a primal-dual interior point method.
 
     Args:

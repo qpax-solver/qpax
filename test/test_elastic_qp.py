@@ -56,7 +56,9 @@ def create_elastic_problem(Q, q, G, h, penalty):
 
 
 def test_with_qpax():
-    Q, q, G, h, penalty, x_sol, t_sol, s1_sol, s2_sol, z1_sol, z2_sol = load_problem_data()
+    Q, q, G, h, penalty, x_sol, t_sol, s1_sol, s2_sol, z1_sol, z2_sol = (
+        load_problem_data()
+    )
 
     x_i, t_i, s1_i, s2_i, z1_i, z2_i = load_initial_values()
 
@@ -86,7 +88,9 @@ def test_with_qpax():
     # qpax elastic tests
 
     # check the qpax elastic initialization
-    _x_i, _t_i, _s1_i, _s2_i, _z1_i, _z2_i = qpax.elastic_qp.initialize_elastic(Q, q, G, h, penalty)
+    _x_i, _t_i, _s1_i, _s2_i, _z1_i, _z2_i = qpax.elastic_qp.initialize_elastic(
+        Q, q, G, h, penalty
+    )
     assert jnp.linalg.norm(x_i - _x_i) < 1e-6
     assert jnp.linalg.norm(t_i - _t_i) < 1e-6
     assert jnp.linalg.norm(s1_i - _s1_i) < 1e-6
@@ -95,9 +99,9 @@ def test_with_qpax():
     assert jnp.linalg.norm(z2_i - _z2_i) < 1e-6
 
     # check qpax solutions
-    _x, _t, _s1, _s2, _z1, _z2, _converged, _pdip_iter = jax.jit(qpax.elastic_qp.solve_qp_elastic)(
-        Q, q, G, h, penalty, solver_tol=1e-10
-    )
+    _x, _t, _s1, _s2, _z1, _z2, _converged, _pdip_iter = jax.jit(
+        qpax.elastic_qp.solve_qp_elastic
+    )(Q, q, G, h, penalty, solver_tol=1e-10)
     assert _converged == 1
     assert jnp.linalg.norm(x_sol - _x) < 1e-6
     assert jnp.linalg.norm(t_sol - _t) < 1e-6
@@ -107,20 +111,26 @@ def test_with_qpax():
     assert jnp.linalg.norm(z2_sol - _z2) < 1e-6
 
     # check primal version
-    _x_primal = jax.jit(qpax.solve_qp_elastic_primal)(Q, q, G, h, penalty, solver_tol=1e-10)
+    _x_primal = jax.jit(qpax.solve_qp_elastic_primal)(
+        Q, q, G, h, penalty, solver_tol=1e-10
+    )
     assert jnp.linalg.norm(x_sol - _x_primal) < 1e-6
 
     # check the gradients
     x_des = jnp.array(np.random.randn(len(q)))
 
     def testf_elastic(_Q, _q, _G, _h):
-        _x = qpax.solve_qp_elastic_primal(_Q, _q, _G, _h, penalty, solver_tol=1e-6, target_kappa=1e-3)
+        _x = qpax.solve_qp_elastic_primal(
+            _Q, _q, _G, _h, penalty, solver_tol=1e-6, target_kappa=1e-3
+        )
         return jnp.sum((_x - x_des) ** 2)
 
     def testf_og(_Q, _q, _G, _h):
         _Q2, _q2, _A2, _b2, _G2, _h2 = create_elastic_problem(_Q, _q, _G, _h, penalty)
 
-        _x_qpax = qpax.solve_qp_primal(_Q2, _q2, _A2, _b2, _G2, _h2, solver_tol=1e-6, target_kappa=1e-3)
+        _x_qpax = qpax.solve_qp_primal(
+            _Q2, _q2, _A2, _b2, _G2, _h2, solver_tol=1e-6, target_kappa=1e-3
+        )
         return jnp.sum((_x_qpax[: len(x_des)] - x_des) ** 2)
 
     grads1 = jax.jit(jax.grad(testf_elastic, (0, 1, 2, 3)))(Q, q, G, h)
