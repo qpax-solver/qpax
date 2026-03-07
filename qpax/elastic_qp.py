@@ -181,7 +181,7 @@ def while_loop_debug(cond_fun, body_fun, init_val):
     return val
 
 
-def solve_qp_elastic(Q, q, G, h, penalty, solver_tol=1e-3):
+def solve_qp_elastic(Q, q, G, h, penalty, solver_tol=1e-3, max_iter=30):
     # symmetrize Q
     Q = 0.5 * (Q + Q.T)
 
@@ -192,7 +192,7 @@ def solve_qp_elastic(Q, q, G, h, penalty, solver_tol=1e-3):
         converged = inputs[12]
         pdip_iter = inputs[13]
 
-        return jnp.logical_and(pdip_iter < 30, converged == 0)
+        return jnp.logical_and(pdip_iter < max_iter, converged == 0)
 
     converged = 0
     pdip_iter = 0
@@ -316,13 +316,13 @@ def pdip_newton_step_elastic(inputs):
     )
 
 
-def relax_qp_elastic(Q, q, G, h, penalty, x, t, s1, s2, z1, z2, solver_tol=1e-3, target_kappa=1e-3):
+def relax_qp_elastic(Q, q, G, h, penalty, x, t, s1, s2, z1, z2, solver_tol=1e-3, target_kappa=1e-3, max_iter=30):
     # continuation criteria for normal predictor-corrector
     def pc_continuation_criteria(inputs):
         converged = inputs[12]
         pdip_iter = inputs[13]
 
-        return jnp.logical_and(pdip_iter < 30, converged == 0)
+        return jnp.logical_and(pdip_iter < max_iter, converged == 0)
 
     converged = 0
     pdip_iter = 0
@@ -418,9 +418,9 @@ def diff_qp_elastic(Q, q, G, h, x, t, s1, s2, lam1, lam2, dl_dz):
 
 
 @jax.custom_vjp
-def solve_qp_elastic_primal(Q, q, G, h, penalty, solver_tol=1e-5, target_kappa=1e-3):
+def solve_qp_elastic_primal(Q, q, G, h, penalty, solver_tol=1e-5, target_kappa=1e-3, max_iter=30):
     # solve qp as normal and return primal solution (use any solver)
-    x, t, s1, s2, z1, z2, converged, pdip_iter = solve_qp_elastic(Q, q, G, h, penalty, solver_tol=solver_tol)
+    x, t, s1, s2, z1, z2, converged, pdip_iter = solve_qp_elastic(Q, q, G, h, penalty, solver_tol=solver_tol, max_iter=max_iter)
 
     return x
 
@@ -430,10 +430,10 @@ these two functions are only called when we diff solve_qp_x
 """
 
 
-def solve_qp_elastic_primal_fwd(Q, q, G, h, penalty, solver_tol=1e-5, target_kappa=1e-3):
+def solve_qp_elastic_primal_fwd(Q, q, G, h, penalty, solver_tol=1e-5, target_kappa=1e-3, max_iter=30):
     # solve qp as normal and return primal solution (use any solver)
 
-    x, t, s1, s2, z1, z2, converged1, pdip_iter1 = solve_qp_elastic(Q, q, G, h, penalty, solver_tol=solver_tol)
+    x, t, s1, s2, z1, z2, converged1, pdip_iter1 = solve_qp_elastic(Q, q, G, h, penalty, solver_tol=solver_tol, max_iter=max_iter)
 
     # relax this solution by taking vanilla Newton steps on relaxed KKT
     xr, tr, s1r, s2r, z1r, z2r, converged2, pdip_iter2 = relax_qp_elastic(
@@ -450,6 +450,7 @@ def solve_qp_elastic_primal_fwd(Q, q, G, h, penalty, solver_tol=1e-5, target_kap
         z2,
         solver_tol=solver_tol,
         target_kappa=target_kappa,
+        max_iter=max_iter,
     )
 
     # return real solution x, and save the relaxed variables for backward
@@ -463,7 +464,8 @@ def solve_qp_elastic_primal_bwd(res, input_grad):
     # return all the normal derivatives, then None's for penalty and kwargs
     dl_dQ, dl_dq, dl_dG, dl_dh = diff_qp_elastic(Q, q, G, h, xr, tr, s1r, s2r, z1r, z2r, input_grad)
 
-    return (dl_dQ, dl_dq, dl_dG, dl_dh, None, None, None)
+    # Final Nones for penalty and kwargs
+    return (dl_dQ, dl_dq, dl_dG, dl_dh, None, None, None, None)
 
 
 solve_qp_elastic_primal.defvjp(solve_qp_elastic_primal_fwd, solve_qp_elastic_primal_bwd)
