@@ -26,9 +26,7 @@ def pdip_newton_step(inputs):
 
     # calculate and take Newton step
     P_inv_vec, L_H, L_F = factorize_kkt(Q, G, A, s, z)
-    dx, ds, dz, dy = solve_kkt_rhs(
-        Q, G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4
-    )
+    dx, ds, dz, dy = solve_kkt_rhs(G, A, s, z, P_inv_vec, L_H, L_F, -r1, -r2, -r3, -r4)
 
     # linesearch and update primal & dual vars
     alpha = 0.99 * jnp.min(

@@ -26,7 +26,6 @@ def diff_qp(Q, q, A, b, G, h, z, s, lam, nu, dl_dz):
 
     # stilde = G @ z - h
     dz, ds, dlam_tilde, dnu = solve_kkt_rhs(
-        Q,
         G,
         A,
         s,

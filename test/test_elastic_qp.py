@@ -78,7 +78,7 @@ def test_with_qpax():
     del x_big, s_big, z_big, y, converged_big, pdip_iter_big
 
     # now let's check the initialization
-    x_big_i, s_big_i, z_big_i, y_big_i = qpax.pdip.initialize(Q2, q2, A2, b2, G2, h2)
+    x_big_i, s_big_i, z_big_i, y_big_i = qpax.pdip.initialize(qpax.pdip.QPData(Q2, q2, A2, b2, G2, h2))
     assert jnp.linalg.norm(x_big_i - jnp.concatenate((x_i, t_i))) < 1e-6
     assert jnp.linalg.norm(s_big_i - jnp.concatenate((s1_i, s2_i))) < 1e-6
     assert jnp.linalg.norm(z_big_i - jnp.concatenate((z1_i, z2_i))) < 1e-6
@@ -89,7 +89,7 @@ def test_with_qpax():
 
     # check the qpax elastic initialization
     _x_i, _t_i, _s1_i, _s2_i, _z1_i, _z2_i = qpax.elastic_qp.initialize_elastic(
-        Q, q, G, h, penalty
+        qpax.elastic_qp.ElasticQPData(Q, q, G, h, penalty)
     )
     assert jnp.linalg.norm(x_i - _x_i) < 1e-6
     assert jnp.linalg.norm(t_i - _t_i) < 1e-6

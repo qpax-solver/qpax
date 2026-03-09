@@ -15,7 +15,7 @@ $$
 
 where $Q \succeq 0$. This solver can be combined with JAX's `jit` and `vmap` functionality, as well as differentiated with reverse-mode `grad`. 
 
-The QP is solved with a primal-dual interior point algorithm detailed in [cvxgen](https://stanford.edu/~boyd/papers/pdf/code_gen_impl.pdf), with the solution to the linear systems computed with reduction techniques from [cvxopt](http://www.seas.ucla.edu/~vandenbe/publications/coneprog.pdf). At an approximate primal-dual solution, the the primal variable $x$ is differentiated with respect to the problem parameters using the implicit function theorem as shown in [optnet](https://arxiv.org/abs/1703.00443), and their pytorch-based qp solver [qpth](https://github.com/locuslab/qpth).
+The QP is solved with a primal-dual interior point algorithm detailed in [cvxgen](https://stanford.edu/~boyd/papers/pdf/code_gen_impl.pdf), with the solution to the linear systems computed with reduction techniques from [cvxopt](http://www.seas.ucla.edu/~vandenbe/publications/coneprog.pdf). At an approximate primal-dual solution, the primal variable $x$ is differentiated with respect to the problem parameters using the implicit function theorem as shown in [optnet](https://arxiv.org/abs/1703.00443), and their pytorch-based qp solver [qpth](https://github.com/locuslab/qpth).
 
 ## Installation
 
@@ -51,14 +51,30 @@ jax.config.update("jax_enable_x64", True)
 ```
 This is taken from the [JAX - The Sharp Bits](https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision).
 
-### Solving a QP 
+### Solving a QP
 We can solve QPs with qpax in a way that plays nice with JAX's `jit` and `vmap`:
-```python 
+```python
 import qpax
 
 # solve QP (this can be combined with jit or vmap)
 x, s, z, y, converged, iters = qpax.solve_qp(Q, q, A, b, G, h, solver_tol=1e-6)
 ```
+
+### Linear System Solver
+
+By default, qpax uses a Cholesky factorization to solve the internal linear systems. You can switch to QR factorization instead, which can be more numerically stable for ill-conditioned problems:
+
+```python
+import qpax
+
+# use QR factorization for the internal linear solves
+x, s, z, y, converged, iters = qpax.solve_qp(
+    Q, q, A, b, G, h,
+    linear_solver=qpax.LinearSolver.QR,
+)
+```
+
+Available options are `qpax.LinearSolver.CHOLESKY` (default) and `qpax.LinearSolver.QR`.
 ### Solving a batch of QP's 
 
 Here let's solve a batch of nonnegative least squares problems as QPs. This outlines two bits of functionality from `qpax`, first is the ability to solve QPs without any equality constraints, and second is the ability to `vmap` over a batch of QPs. 
