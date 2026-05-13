@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "qpax"
 version = "0.0.10"
 description = "Differentiable QP solver in JAX."
-authors = [{ name = "Kevin Tracy", email = "ktracy@cmu.edu" }]
+authors = [{ name = "Kevin Tracy", email = "kevintracy48@gmail.com" }]
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -26,7 +26,7 @@ dependencies = ["jax>=0.4.0", "jaxlib>=0.4.0"]
 dev = ["pre-commit", "pytest", "ruff"]
 
 [project.urls]
-"Homepage" = "https://github.com/kevin-tracy/qpax"
+"Homepage" = "https://github.com/qpax-solver/qpax"
 
 [tool.ruff]
 line-length = 88
