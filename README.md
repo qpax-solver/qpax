@@ -5,6 +5,14 @@
 <p align="center"><strong>Differentiable, batched, single-precision quadratic programming in JAX</strong></p>
 
 <p align="center">
+  <a href="https://pypi.org/project/qpax/"><img src="https://img.shields.io/pypi/v/qpax.svg" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/qpax/"><img src="https://img.shields.io/pypi/pyversions/qpax.svg" alt="Python versions"></a>
+  <a href="https://github.com/qpax-solver/qpax/actions/workflows/build.yaml"><img src="https://github.com/qpax-solver/qpax/actions/workflows/build.yaml/badge.svg" alt="Build status"></a>
+  <a href="https://qpax-solver.github.io/qpax"><img src="https://img.shields.io/badge/docs-online-brightgreen" alt="Documentation"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
+</p>
+
+<p align="center">
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="https://qpax-solver.github.io/qpax">Documentation</a>
