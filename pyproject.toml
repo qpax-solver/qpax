@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qpax"
-version = "0.1.0"
+version = "0.1.1"
 description = "Differentiable QP solver in JAX."
 authors = [{ name = "Jon Arrizabalaga", email = "arrijon96@gmail.com" }]
 readme = "README.md"

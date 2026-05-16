@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/images/logo_nobackground_cropped.png" alt="qpax logo">
+  <img src="https://raw.githubusercontent.com/qpax-solver/qpax/main/docs/assets/images/logo_nobackground_cropped.png" alt="qpax logo">
 </p>
 
 <p align="center"><strong>Differentiable, batched, single-precision quadratic programming in JAX</strong></p>
