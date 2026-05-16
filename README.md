@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
+  <a href="https://qpax-solver.github.io/qpax/installation/">Installation</a> •
   <a href="https://qpax-solver.github.io/qpax">Documentation</a>
 </p>
 
@@ -48,9 +48,12 @@ To install directly from github using `pip`:
 * NVIDIA GPU (cuda 12): `pip install "qpax[cuda12]"`
 * NVIDIA GPU (cuda 13): `pip install "qpax[cuda13]"`
 
-For further details, check [our documentation](https://qpax-solver.github.io/qpax).
+For further details, check [our documentation](https://qpax-solver.github.io/qpax/installation/).
 
+## Examples
+Browse the [quickstart examples](https://qpax-solver.github.io/qpax/quickstart/) in the documentation, and explore end-to-end applications in the [examples repository](https://github.com/qpax-solver/qpax-examples).
 
+If you are using `qpax` in an interesting application and would like it featured, please open an [issue](https://github.com/qpax-solver/qpax-examples/issues) or [pull request](https://github.com/qpax-solver/qpax-examples/pulls) in the examples repository.
 
 ## License
 This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
