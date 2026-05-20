@@ -228,6 +228,8 @@ def solve_qp(
         qp, st, converged, pdip_iter, bad_step_seen = inputs
         Q, q, A, b, G, h = qp
         x, s, z, y = st
+        s_prev = s
+        z_prev = z
 
         # Match relax_qp's protection (pdip_relaxed.py): floor s,z so that
         # cond(H = Q + Gᵀ diag(z/s) G) stays within reach of f32 Cholesky.
@@ -283,8 +285,8 @@ def solve_qp(
         take = converged == 0
         new_state = QPState(
             jnp.where(take, x + alpha * dx, x),
-            jnp.where(take, s + alpha * ds, s),
-            jnp.where(take, z + alpha * dz, z),
+            jnp.where(take, s + alpha * ds, s_prev),
+            jnp.where(take, z + alpha * dz, z_prev),
             jnp.where(take, y + alpha * dy, y),
         )
         return (qp, new_state, converged, pdip_iter + 1, bad_step_seen)
@@ -398,6 +400,8 @@ def solve_qp_group_flags(
         ) = inputs
         Q, q, A, b, G, h = qp
         x, s, z, y = st
+        s_prev = s
+        z_prev = z
 
         # Mirror solve_qp's s,z floor so this diagnostic version follows the
         # same numerical path as production. Without it the predictor's
@@ -447,8 +451,8 @@ def solve_qp_group_flags(
         take = converged == 0
         new_state = QPState(
             jnp.where(take, x + alpha * dx, x),
-            jnp.where(take, s + alpha * ds, s),
-            jnp.where(take, z + alpha * dz, z),
+            jnp.where(take, s + alpha * ds, s_prev),
+            jnp.where(take, z + alpha * dz, z_prev),
             jnp.where(take, y + alpha * dy, y),
         )
         return (

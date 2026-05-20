@@ -79,8 +79,8 @@ def pdip_newton_step(inputs, verbose: bool = False):
     y_new = jnp.where(take, y + alpha * dy, y)
     v_new = jnp.where(take, v + alpha * dv, v)
     kappa_new = jnp.where(take, kappa + alpha * dk, kappa)
-    z_new = retraction_map(v_new, kappa_new)
-    s_new = retraction_map(-v_new, kappa_new)
+    z_new = jnp.where(take, retraction_map(v_new, kappa_new), z)
+    s_new = jnp.where(take, retraction_map(-v_new, kappa_new), s)
 
     return (
         Q,

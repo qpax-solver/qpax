@@ -206,13 +206,14 @@ def solve_qp_elastic(Q, q, G, h, penalty, solver_tol=1e-3, max_iter=30):
             )
         )
 
+        take = converged == 0
         new_state = ElasticQPState(
-            x + alpha * dx,
-            t + alpha * dt,
-            s1 + alpha * ds1,
-            s2 + alpha * ds2,
-            z1 + alpha * dz1,
-            z2 + alpha * dz2,
+            jnp.where(take, x + alpha * dx, x),
+            jnp.where(take, t + alpha * dt, t),
+            jnp.where(take, s1 + alpha * ds1, s1),
+            jnp.where(take, s2 + alpha * ds2, s2),
+            jnp.where(take, z1 + alpha * dz1, z1),
+            jnp.where(take, z2 + alpha * dz2, z2),
         )
 
         if DEBUG_FLAG:
@@ -315,13 +316,14 @@ def relax_qp_elastic(
             )
         )
 
+        take = converged == 0
         new_state = ElasticQPState(
-            x + alpha * dx,
-            t + alpha * dt,
-            s1 + alpha * ds1,
-            s2 + alpha * ds2,
-            z1 + alpha * dz1,
-            z2 + alpha * dz2,
+            jnp.where(take, x + alpha * dx, x),
+            jnp.where(take, t + alpha * dt, t),
+            jnp.where(take, s1 + alpha * ds1, s1),
+            jnp.where(take, s2 + alpha * ds2, s2),
+            jnp.where(take, z1 + alpha * dz1, z1),
+            jnp.where(take, z2 + alpha * dz2, z2),
         )
 
         if DEBUG_FLAG:
