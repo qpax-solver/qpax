@@ -99,6 +99,4 @@ def test_solver_preserves_state_on_terminal_iteration(backend, seed, nx, ns, ny)
     )
 
     for full_value, capped_value in zip(full[:4], capped[:4], strict=True):
-        np.testing.assert_array_equal(
-            np.asarray(full_value), np.asarray(capped_value)
-        )
+        np.testing.assert_array_equal(np.asarray(full_value), np.asarray(capped_value))

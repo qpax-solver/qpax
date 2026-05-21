@@ -33,14 +33,10 @@ def test_elastic_explicit_preserves_state_on_terminal_iteration():
     assert int(full[-2]) == 1
     assert iters > 1
 
-    capped = qpax.solve_qp_elastic(
-        Q, q, G, h, penalty, backend="e", max_iter=iters - 1
-    )
+    capped = qpax.solve_qp_elastic(Q, q, G, h, penalty, backend="e", max_iter=iters - 1)
 
     for full_value, capped_value in zip(full[:6], capped[:6], strict=True):
-        np.testing.assert_array_equal(
-            np.asarray(full_value), np.asarray(capped_value)
-        )
+        np.testing.assert_array_equal(np.asarray(full_value), np.asarray(capped_value))
 
 
 def test_elastic_implicit_raises():
